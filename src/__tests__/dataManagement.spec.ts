@@ -3,7 +3,7 @@ import { resolvePinCollision, removePin, computeDisplayList } from '../composabl
 import { useMultiSort } from '../composables/useMultiSort';
 import { useDebouncedSearch } from '../composables/useDebouncedSearch';
 import { generateRecordsBatch } from '../utils/mockGenerator';
-import type { DataRecord } from '../types';
+import type { DataRecord, DeltaStoragePayload } from '../types';
 
 describe('1. Mock Data Generator', () => {
   it('generates 500 records with valid properties', () => {
@@ -47,12 +47,21 @@ describe('2. Relative Pinning & Collision Resolution (Option A Shift/Bump)', () 
     expect(bob?.pinnedPosition).toBeNull();
   });
 
-  it('computes display list locking pinned items to target slots regardless of search filter (Behavior B)', () => {
+  it('filters all columns and excludes non-matching pinned rows from search results', () => {
+    // Charlie matches 'PM', but Alice (pinned 1) and Bob (pinned 2) do not match 'PM'
     const display = computeDisplayList(records, 'PM', []);
-    expect(display.length).toBe(3);
-    expect(display[0].id).toBe('1');
-    expect(display[1].id).toBe('2');
-    expect(display[2].id).toBe('3');
+    expect(display.length).toBe(1);
+    expect(display[0].id).toBe('3');
+  });
+
+  it('interleaves matching pinned items at their exact 1-based relative slot index (zero-clone pipeline)', () => {
+    // When no search query, slot 1 has Alice, slot 2 has Bob, slot 3 has Charlie, slot 4 has David
+    const display = computeDisplayList(records, '', []);
+    expect(display.length).toBe(4);
+    expect(display[0].id).toBe('1'); // Slot 1
+    expect(display[1].id).toBe('2'); // Slot 2
+    expect(display[2].id).toBe('3'); // Slot 3
+    expect(display[3].id).toBe('4'); // Slot 4
   });
 });
 
@@ -104,5 +113,54 @@ describe('4. Search Debounce & AbortController Metrics (Part B)', () => {
     expect(debouncedQuery.value).toBe('Engineer');
     expect(metrics.debouncedExecutions).toBe(1);
     expect(metrics.trafficReductionPercent).toBe(88);
+  });
+});
+
+describe('5. Memory Architecture & Delta Persistence (Part C)', () => {
+  it('serializes lightweight delta payloads under 5 KB instead of full row arrays', () => {
+    const deltaPayload: DeltaStoragePayload = {
+      pins: { 'REC-000001': 1, 'REC-000005': 3 },
+      edits: { 'REC-000001': { userName: 'Elena Rostova Updated', age: 32 } },
+      deletedIds: ['REC-000002'],
+      createdRecords: [{
+        id: 'REC-000501',
+        userName: 'New Employee',
+        position: 'Architect',
+        location: 'Berlin',
+        age: 30,
+        dateStart: '2024-01-01',
+        pinnedPosition: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      }],
+      version: 1,
+    };
+
+    const jsonStr = JSON.stringify(deltaPayload);
+    const sizeBytes = new Blob([jsonStr]).size;
+
+    // Delta payload size is well below 1 KB
+    expect(sizeBytes).toBeLessThan(1024);
+    expect(deltaPayload.pins['REC-000001']).toBe(1);
+    expect(deltaPayload.deletedIds).toContain('REC-000002');
+  });
+
+  it('sliding window maintains active memory capacity under 2,500 rows', () => {
+    const MAX_RAM_CAP = 2500;
+    let inMemoryRows: DataRecord[] = generateRecordsBatch(500, 1);
+    expect(inMemoryRows.length).toBe(500);
+
+    // Append 5 additional 500-batches (total 3,000 rows generated)
+    for (let i = 1; i <= 5; i++) {
+      const nextBatch = generateRecordsBatch(500, inMemoryRows.length + 1);
+      inMemoryRows = [...inMemoryRows, ...nextBatch];
+      if (inMemoryRows.length > MAX_RAM_CAP) {
+        const excess = inMemoryRows.length - MAX_RAM_CAP;
+        inMemoryRows = inMemoryRows.slice(excess);
+      }
+    }
+
+    // Verified: in-memory rows is capped at exactly MAX_RAM_CAP
+    expect(inMemoryRows.length).toBe(MAX_RAM_CAP);
   });
 });

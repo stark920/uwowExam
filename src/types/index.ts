@@ -27,10 +27,17 @@ export interface SearchMetricsState {
   activeSignal: boolean;
 }
 
-export interface NotificationToast {
-  id: string;
-  type: 'success' | 'info' | 'warning' | 'error';
-  title: string;
-  message: string;
-  timestamp: number;
+export interface DeltaStoragePayload {
+  pins: Record<string, number>;              // recordId -> 1-based relative display slot
+  edits: Record<string, Partial<DataRecord>>; // recordId -> modified field attributes
+  deletedIds: string[];                      // record IDs marked as deleted
+  createdRecords: DataRecord[];              // user-created records
+  version: number;
+}
+
+export interface MemoryStats {
+  activeRamCount: number;
+  maxRamCap: number;
+  totalDatasetTarget: number;
+  deltaPayloadBytes: number;
 }

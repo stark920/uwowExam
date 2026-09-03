@@ -3,6 +3,7 @@
     <!-- Top Header -->
     <AppHeader
       :total-records="totalLoadedCount"
+      :total-dataset-count="totalDatasetCount"
       :pinned-count="pinnedRecordsCount"
       :is-batch-loading="isBatchLoading"
       v-model:remember-mode="rememberMode"
@@ -12,10 +13,11 @@
       @open:add-modal="openAddModal"
     />
 
-    <!-- Part B Live Metrics HUD (Collapsible) -->
+    <!-- Part B & C Live Performance & Memory Inspector -->
     <MetricsHUD
       v-if="showMetricsHUD"
       :metrics="metrics"
+      :memory-stats="memoryStats"
       @reset:metrics="resetMetrics"
     />
 
@@ -137,7 +139,9 @@ const {
   rememberMode,
   isBatchLoading,
   totalLoadedCount,
+  totalDatasetCount,
   pinnedRecordsCount,
+  memoryStats,
   loadNextBatch,
   addRecord,
   updateRecord,
