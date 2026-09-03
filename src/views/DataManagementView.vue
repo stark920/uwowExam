@@ -13,10 +13,11 @@
       @open:add-modal="openAddModal"
     />
 
-    <!-- Part B Live Metrics HUD (Collapsible) -->
+    <!-- Part B & C Live Performance & Memory Inspector -->
     <MetricsHUD
       v-if="showMetricsHUD"
       :metrics="metrics"
+      :memory-stats="memoryStats"
       @reset:metrics="resetMetrics"
     />
 
@@ -140,6 +141,7 @@ const {
   totalLoadedCount,
   totalDatasetCount,
   pinnedRecordsCount,
+  memoryStats,
   loadNextBatch,
   addRecord,
   updateRecord,
