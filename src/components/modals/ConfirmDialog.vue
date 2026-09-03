@@ -1,32 +1,49 @@
 <template>
-  <div v-if="isOpen" class="modal-overlay" @click.self="$emit('cancel')">
-    <div class="modal-content glass-panel confirm-dialog">
-      <div class="dialog-body">
-        <div class="dialog-icon" :class="`icon-${type}`">
-          <AlertTriangle v-if="type === 'danger'" :size="24" />
-          <HelpCircle v-else :size="24" />
-        </div>
-        <div class="dialog-content">
-          <h3 class="dialog-title font-display">{{ title }}</h3>
-          <p class="dialog-message">{{ message }}</p>
-        </div>
-      </div>
+  <UModal :open="isOpen" @update:open="onOpenChange">
+    <template #content>
+      <UCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div
+                class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border"
+                :class="type === 'danger' ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'"
+              >
+                <AlertTriangle v-if="type === 'danger'" :size="18" />
+                <HelpCircle v-else :size="18" />
+              </div>
+              <h3 class="text-base font-bold text-slate-100">{{ title }}</h3>
+            </div>
+            <UButton
+              color="neutral"
+              variant="ghost"
+              icon="i-lucide-x"
+              size="sm"
+              @click="$emit('cancel')"
+            />
+          </div>
+        </template>
 
-      <div class="dialog-footer">
-        <button type="button" class="btn btn-secondary" @click="$emit('cancel')">
-          Cancel
-        </button>
-        <button
-          type="button"
-          class="btn"
-          :class="type === 'danger' ? 'btn-outline-danger' : 'btn-primary'"
-          @click="$emit('confirm')"
-        >
-          {{ confirmText || (type === 'danger' ? 'Delete' : 'Confirm') }}
-        </button>
-      </div>
-    </div>
-  </div>
+        <p class="text-xs text-slate-300 leading-relaxed py-1">{{ message }}</p>
+
+        <template #footer>
+          <div class="flex items-center justify-end gap-3">
+            <UButton
+              color="neutral"
+              variant="outline"
+              label="Cancel"
+              @click="$emit('cancel')"
+            />
+            <UButton
+              :color="type === 'danger' ? 'error' : 'primary'"
+              :label="confirmText || (type === 'danger' ? 'Delete' : 'Confirm')"
+              @click="$emit('confirm')"
+            />
+          </div>
+        </template>
+      </UCard>
+    </template>
+  </UModal>
 </template>
 
 <script setup lang="ts">
@@ -40,71 +57,12 @@ defineProps<{
   confirmText?: string;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'confirm'): void;
   (e: 'cancel'): void;
 }>();
+
+function onOpenChange(val: boolean) {
+  if (!val) emit('cancel');
+}
 </script>
-
-<style scoped>
-.confirm-dialog {
-  max-width: 440px;
-  padding: 1.5rem;
-}
-
-.dialog-body {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
-}
-
-.dialog-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.icon-danger {
-  background: var(--rose-bg);
-  color: var(--rose-text);
-  border: 1px solid var(--rose-border);
-}
-
-.icon-info {
-  background: var(--indigo-bg);
-  color: var(--indigo-text);
-  border: 1px solid var(--indigo-border);
-}
-
-.dialog-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.dialog-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.dialog-message {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  line-height: 1.45;
-}
-
-.dialog-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-subtle);
-}
-</style>

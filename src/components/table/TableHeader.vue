@@ -1,71 +1,101 @@
 <template>
-  <div class="table-header-row">
-    <div class="th-cell col-pin" title="Relative Pin Slot Index">
+  <div class="flex items-center bg-slate-900/95 border-b-2 border-slate-800 text-xs font-semibold text-slate-400 uppercase tracking-wider sticky top-0 z-10 backdrop-blur-md select-none">
+    <div class="w-[70px] shrink-0 p-3 flex items-center gap-1 text-slate-500 cursor-default" title="Relative Pin Slot Index">
       <Pin :size="13" />
       <span>Slot</span>
     </div>
 
-    <div class="th-cell col-id" @click="$emit('sort', 'id')">
+    <div
+      class="w-[110px] shrink-0 p-3 flex items-center gap-1.5 cursor-pointer hover:text-slate-100 hover:bg-slate-800/40 transition-colors"
+      @click="$emit('sort', 'id')"
+    >
       <span>ID</span>
-      <div class="sort-indicators">
-        <span v-if="getSortInfo('id').priority" class="sort-priority">#{{ getSortInfo('id').priority }}</span>
-        <ArrowUp v-if="getSortInfo('id').direction === 'asc'" :size="12" class="sort-arrow" />
-        <ArrowDown v-else-if="getSortInfo('id').direction === 'desc'" :size="12" class="sort-arrow" />
-        <ArrowUpDown v-else :size="11" class="sort-placeholder" />
+      <div class="flex items-center gap-1">
+        <span v-if="getSortInfo('id').priority" class="bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full leading-none">
+          #{{ getSortInfo('id').priority }}
+        </span>
+        <ArrowUp v-if="getSortInfo('id').direction === 'asc'" :size="12" class="text-indigo-400" />
+        <ArrowDown v-else-if="getSortInfo('id').direction === 'desc'" :size="12" class="text-indigo-400" />
+        <ArrowUpDown v-else :size="11" class="text-slate-600 opacity-40 group-hover:opacity-80" />
       </div>
     </div>
 
-    <div class="th-cell col-name" @click="$emit('sort', 'userName')">
+    <div
+      class="flex-[2] min-w-[170px] p-3 flex items-center gap-1.5 cursor-pointer hover:text-slate-100 hover:bg-slate-800/40 transition-colors"
+      @click="$emit('sort', 'userName')"
+    >
       <span>User Name</span>
-      <div class="sort-indicators">
-        <span v-if="getSortInfo('userName').priority" class="sort-priority">#{{ getSortInfo('userName').priority }}</span>
-        <ArrowUp v-if="getSortInfo('userName').direction === 'asc'" :size="12" class="sort-arrow" />
-        <ArrowDown v-else-if="getSortInfo('userName').direction === 'desc'" :size="12" class="sort-arrow" />
-        <ArrowUpDown v-else :size="11" class="sort-placeholder" />
+      <div class="flex items-center gap-1">
+        <span v-if="getSortInfo('userName').priority" class="bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full leading-none">
+          #{{ getSortInfo('userName').priority }}
+        </span>
+        <ArrowUp v-if="getSortInfo('userName').direction === 'asc'" :size="12" class="text-indigo-400" />
+        <ArrowDown v-else-if="getSortInfo('userName').direction === 'desc'" :size="12" class="text-indigo-400" />
+        <ArrowUpDown v-else :size="11" class="text-slate-600 opacity-40 group-hover:opacity-80" />
       </div>
     </div>
 
-    <div class="th-cell col-position" @click="$emit('sort', 'position')">
+    <div
+      class="flex-[2] min-w-[190px] p-3 flex items-center gap-1.5 cursor-pointer hover:text-slate-100 hover:bg-slate-800/40 transition-colors"
+      @click="$emit('sort', 'position')"
+    >
       <span>Position</span>
-      <div class="sort-indicators">
-        <span v-if="getSortInfo('position').priority" class="sort-priority">#{{ getSortInfo('position').priority }}</span>
-        <ArrowUp v-if="getSortInfo('position').direction === 'asc'" :size="12" class="sort-arrow" />
-        <ArrowDown v-else-if="getSortInfo('position').direction === 'desc'" :size="12" class="sort-arrow" />
-        <ArrowUpDown v-else :size="11" class="sort-placeholder" />
+      <div class="flex items-center gap-1">
+        <span v-if="getSortInfo('position').priority" class="bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full leading-none">
+          #{{ getSortInfo('position').priority }}
+        </span>
+        <ArrowUp v-if="getSortInfo('position').direction === 'asc'" :size="12" class="text-indigo-400" />
+        <ArrowDown v-else-if="getSortInfo('position').direction === 'desc'" :size="12" class="text-indigo-400" />
+        <ArrowUpDown v-else :size="11" class="text-slate-600 opacity-40 group-hover:opacity-80" />
       </div>
     </div>
 
-    <div class="th-cell col-location" @click="$emit('sort', 'location')">
+    <div
+      class="flex-[1.5] min-w-[150px] p-3 flex items-center gap-1.5 cursor-pointer hover:text-slate-100 hover:bg-slate-800/40 transition-colors"
+      @click="$emit('sort', 'location')"
+    >
       <span>Location</span>
-      <div class="sort-indicators">
-        <span v-if="getSortInfo('location').priority" class="sort-priority">#{{ getSortInfo('location').priority }}</span>
-        <ArrowUp v-if="getSortInfo('location').direction === 'asc'" :size="12" class="sort-arrow" />
-        <ArrowDown v-else-if="getSortInfo('location').direction === 'desc'" :size="12" class="sort-arrow" />
-        <ArrowUpDown v-else :size="11" class="sort-placeholder" />
+      <div class="flex items-center gap-1">
+        <span v-if="getSortInfo('location').priority" class="bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full leading-none">
+          #{{ getSortInfo('location').priority }}
+        </span>
+        <ArrowUp v-if="getSortInfo('location').direction === 'asc'" :size="12" class="text-indigo-400" />
+        <ArrowDown v-else-if="getSortInfo('location').direction === 'desc'" :size="12" class="text-indigo-400" />
+        <ArrowUpDown v-else :size="11" class="text-slate-600 opacity-40 group-hover:opacity-80" />
       </div>
     </div>
 
-    <div class="th-cell col-age" @click="$emit('sort', 'age')">
+    <div
+      class="w-[80px] shrink-0 p-3 flex items-center justify-end gap-1.5 cursor-pointer hover:text-slate-100 hover:bg-slate-800/40 transition-colors"
+      @click="$emit('sort', 'age')"
+    >
       <span>Age</span>
-      <div class="sort-indicators">
-        <span v-if="getSortInfo('age').priority" class="sort-priority">#{{ getSortInfo('age').priority }}</span>
-        <ArrowUp v-if="getSortInfo('age').direction === 'asc'" :size="12" class="sort-arrow" />
-        <ArrowDown v-else-if="getSortInfo('age').direction === 'desc'" :size="12" class="sort-arrow" />
-        <ArrowUpDown v-else :size="11" class="sort-placeholder" />
+      <div class="flex items-center gap-1">
+        <span v-if="getSortInfo('age').priority" class="bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full leading-none">
+          #{{ getSortInfo('age').priority }}
+        </span>
+        <ArrowUp v-if="getSortInfo('age').direction === 'asc'" :size="12" class="text-indigo-400" />
+        <ArrowDown v-else-if="getSortInfo('age').direction === 'desc'" :size="12" class="text-indigo-400" />
+        <ArrowUpDown v-else :size="11" class="text-slate-600 opacity-40" />
       </div>
     </div>
 
-    <div class="th-cell col-date" @click="$emit('sort', 'dateStart')">
+    <div
+      class="w-[130px] shrink-0 p-3 flex items-center justify-end gap-1.5 cursor-pointer hover:text-slate-100 hover:bg-slate-800/40 transition-colors"
+      @click="$emit('sort', 'dateStart')"
+    >
       <span>Date Start</span>
-      <div class="sort-indicators">
-        <span v-if="getSortInfo('dateStart').priority" class="sort-priority">#{{ getSortInfo('dateStart').priority }}</span>
-        <ArrowUp v-if="getSortInfo('dateStart').direction === 'asc'" :size="12" class="sort-arrow" />
-        <ArrowDown v-else-if="getSortInfo('dateStart').direction === 'desc'" :size="12" class="sort-arrow" />
-        <ArrowUpDown v-else :size="11" class="sort-placeholder" />
+      <div class="flex items-center gap-1">
+        <span v-if="getSortInfo('dateStart').priority" class="bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full leading-none">
+          #{{ getSortInfo('dateStart').priority }}
+        </span>
+        <ArrowUp v-if="getSortInfo('dateStart').direction === 'asc'" :size="12" class="text-indigo-400" />
+        <ArrowDown v-else-if="getSortInfo('dateStart').direction === 'desc'" :size="12" class="text-indigo-400" />
+        <ArrowUpDown v-else :size="11" class="text-slate-600 opacity-40" />
       </div>
     </div>
 
-    <div class="th-cell col-actions">
+    <div class="w-[120px] shrink-0 p-3 flex items-center justify-center text-slate-400 cursor-default">
       <span>Actions</span>
     </div>
   </div>
@@ -91,75 +121,3 @@ function getSortInfo(field: SortField) {
   };
 }
 </script>
-
-<style scoped>
-.table-header-row {
-  display: flex;
-  align-items: center;
-  background: rgba(15, 23, 42, 0.95);
-  border-bottom: 2px solid var(--border-subtle);
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  backdrop-filter: blur(8px);
-}
-
-.th-cell {
-  padding: 0.85rem 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  cursor: pointer;
-  user-select: none;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.th-cell:hover:not(.col-pin):not(.col-actions) {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.col-pin { width: 70px; flex-shrink: 0; cursor: default; }
-.col-id { width: 110px; flex-shrink: 0; }
-.col-name { flex: 2; min-width: 170px; }
-.col-position { flex: 2; min-width: 190px; }
-.col-location { flex: 1.5; min-width: 150px; }
-.col-age { width: 80px; flex-shrink: 0; justify-content: flex-end; }
-.col-date { width: 130px; flex-shrink: 0; justify-content: flex-end; }
-.col-actions { width: 120px; flex-shrink: 0; justify-content: center; cursor: default; }
-
-.sort-indicators {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  margin-left: 0.2rem;
-}
-
-.sort-priority {
-  background: var(--accent-primary);
-  color: #ffffff;
-  font-size: 0.62rem;
-  font-weight: 700;
-  padding: 0 0.25rem;
-  border-radius: 999px;
-  line-height: 1.2;
-}
-
-.sort-arrow {
-  color: var(--indigo-text);
-}
-
-.sort-placeholder {
-  color: var(--text-muted);
-  opacity: 0.3;
-}
-
-.th-cell:hover .sort-placeholder {
-  opacity: 0.8;
-}
-</style>

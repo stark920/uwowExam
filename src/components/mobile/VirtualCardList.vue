@@ -1,10 +1,33 @@
 <template>
-  <div class="card-list-container glass-panel">
+  <div class="flex flex-col overflow-hidden h-[calc(100vh-240px)] min-h-[480px] relative rounded-xl border border-slate-800/80 bg-slate-900/75 backdrop-blur-xl shadow-2xl">
+    <!-- Pinned Cards Fixed On Top (Zero Gap) -->
+    <div
+      v-if="pinnedItems.length > 0"
+      class="shrink-0 z-20 bg-slate-900/95 border-b-2 border-amber-500/40 backdrop-blur-md p-3 sm:p-4 space-y-2.5 shadow-lg max-h-[45vh] overflow-y-auto"
+    >
+      <div class="flex items-center gap-2 text-xs font-semibold text-amber-400">
+        <Pin :size="12" class="text-amber-400" />
+        <span>PINNED CARDS (FIXED ON TOP &bull; {{ pinnedItems.length }})</span>
+      </div>
+      <VirtualCard
+        v-for="pinnedRecord in pinnedItems"
+        :key="pinnedRecord.id"
+        :record="pinnedRecord"
+        :search-query="searchQuery"
+        @pin="$emit('pin', $event)"
+        @unpin="$emit('unpin', $event)"
+        @edit="$emit('edit', $event)"
+        @delete="$emit('delete', $event)"
+      />
+    </div>
+
+    <!-- Virtualized Scroll Scroller -->
     <div
       ref="cardScrollContainerRef"
-      class="card-scroller"
+      class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3"
       @scroll="handleScroll"
     >
+      <!-- Virtualized Scroll Space -->
       <div :style="{ height: `${topPadding}px` }"></div>
 
       <VirtualCard
@@ -20,17 +43,25 @@
 
       <div :style="{ height: `${bottomPadding}px` }"></div>
 
-      <div v-if="items.length === 0" class="empty-state">
-        <Inbox :size="48" class="empty-icon text-muted" />
-        <h3 class="empty-title">No Records Found</h3>
-        <p class="empty-desc">No records match your search query.</p>
-        <button v-if="searchQuery" class="btn btn-secondary btn-sm" @click="$emit('clear:query')">
-          Clear Filter
-        </button>
+      <!-- Empty State -->
+      <div v-if="unpinnedItems.length === 0 && pinnedItems.length === 0" class="flex flex-col items-center justify-center py-20 px-4 text-center gap-3 text-slate-400">
+        <Inbox :size="48" class="opacity-30 text-slate-500" />
+        <h3 class="text-base font-semibold text-slate-200">No Records Found</h3>
+        <p class="text-xs text-slate-400">No records match your search query.</p>
+        <UButton
+          v-if="searchQuery"
+          class="mt-2"
+          size="xs"
+          color="neutral"
+          variant="outline"
+          label="Clear Filter"
+          @click="$emit('clear:query')"
+        />
       </div>
 
-      <div v-if="isBatchLoading" class="batch-loader-footer">
-        <RefreshCw :size="16" class="spin-icon text-amber-400" />
+      <!-- Batch Loader Footer -->
+      <div v-if="isBatchLoading" class="flex items-center justify-center gap-2 p-3 bg-slate-900/90 border border-slate-800 rounded-lg text-amber-400 text-xs font-medium sticky bottom-0 z-10 backdrop-blur-md">
+        <RefreshCw :size="16" class="animate-spin text-amber-400" />
         <span>Loading Next 500 Records...</span>
       </div>
     </div>
@@ -38,8 +69,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, toRef } from 'vue';
-import { RefreshCw, Inbox } from 'lucide-vue-next';
+import { ref, computed } from 'vue';
+import { RefreshCw, Inbox, Pin } from 'lucide-vue-next';
 import type { DataRecord } from '../../types';
 import VirtualCard from './VirtualCard.vue';
 import { useVirtualScroll } from '../../composables/useVirtualScroll';
@@ -61,6 +92,16 @@ const emit = defineEmits<{
 
 const cardScrollContainerRef = ref<HTMLElement | null>(null);
 
+const pinnedItems = computed(() => {
+  return props.items
+    .filter((r) => r.pinnedPosition !== null)
+    .sort((a, b) => (a.pinnedPosition ?? 0) - (b.pinnedPosition ?? 0));
+});
+
+const unpinnedItems = computed(() => {
+  return props.items.filter((r) => r.pinnedPosition === null);
+});
+
 const {
   visibleItems,
   topPadding,
@@ -68,9 +109,9 @@ const {
   handleScroll,
   scrollToTop,
 } = useVirtualScroll<DataRecord>({
-  items: toRef(props, 'items'),
+  items: unpinnedItems,
   itemHeight: 200,
-  overscan: 4,
+  overscan: 6,
   containerRef: cardScrollContainerRef,
   onReachBottom: () => {
     emit('reach:bottom');
@@ -82,68 +123,3 @@ defineExpose({
   scrollToTop,
 });
 </script>
-
-<style scoped>
-.card-list-container {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  height: calc(100vh - 240px);
-  min-height: 480px;
-  position: relative;
-}
-
-.card-scroller {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0.85rem;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 5rem 2rem;
-  gap: 0.75rem;
-  color: var(--text-secondary);
-}
-
-.empty-icon {
-  opacity: 0.3;
-}
-
-.empty-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.empty-desc {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.batch-loader-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.85rem;
-  background: rgba(15, 23, 42, 0.9);
-  border-radius: var(--radius-md);
-  color: var(--amber-text);
-  font-size: 0.82rem;
-  font-weight: 500;
-  margin-top: 0.5rem;
-}
-
-.spin-icon {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-</style>
