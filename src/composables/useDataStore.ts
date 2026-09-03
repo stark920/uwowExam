@@ -1,5 +1,6 @@
 import { ref, computed, watch } from 'vue';
-import type { DataRecord, NotificationToast } from '../types';
+import { useToast } from '@nuxt/ui/composables';
+import type { DataRecord } from '../types';
 import { generateRecordsBatch } from '../utils/mockGenerator';
 import { resolvePinCollision, removePin } from './usePinning';
 
@@ -9,6 +10,8 @@ const INITIAL_SEED_COUNT = 2500;
 const BATCH_SIZE = 500;
 
 export function useDataStore() {
+  const toast = useToast();
+
   const rememberMode = ref<boolean>(
     localStorage.getItem(STORAGE_KEY_REMEMBER) === 'true'
   );
@@ -16,7 +19,22 @@ export function useDataStore() {
   const records = ref<DataRecord[]>([]);
   const isBatchLoading = ref<boolean>(false);
   const totalLoadedCount = ref<number>(0);
-  const toasts = ref<NotificationToast[]>([]);
+
+  function notify(type: 'success' | 'warning' | 'error' | 'info', title: string, description: string) {
+    const iconMap = {
+      success: 'i-lucide-check-circle-2',
+      warning: 'i-lucide-triangle-alert',
+      error: 'i-lucide-circle-alert',
+      info: 'i-lucide-info',
+    };
+
+    toast.add({
+      title,
+      description,
+      color: type,
+      icon: iconMap[type] || 'i-lucide-info',
+    });
+  }
 
   function initData() {
     if (rememberMode.value) {
@@ -65,18 +83,10 @@ export function useDataStore() {
     localStorage.setItem(STORAGE_KEY_REMEMBER, newVal ? 'true' : 'false');
     if (newVal) {
       localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records.value.slice(0, 5000)));
-      addToast({
-        type: 'info',
-        title: 'Remember Mode Enabled',
-        message: 'Your modifications and pinned positions will persist across refreshes.',
-      });
+      notify('info', 'Remember Mode Enabled', 'Your modifications and pinned positions will persist across refreshes.');
     } else {
       localStorage.removeItem(STORAGE_KEY_RECORDS);
-      addToast({
-        type: 'info',
-        title: 'Remember Mode Disabled',
-        message: 'Storage cleared. Operating in fast in-memory mode.',
-      });
+      notify('info', 'Remember Mode Disabled', 'Storage cleared. Operating in fast in-memory mode.');
     }
   });
 
@@ -105,12 +115,7 @@ export function useDataStore() {
     };
 
     records.value.unshift(newRecord);
-
-    addToast({
-      type: 'success',
-      title: 'Record Created',
-      message: `Successfully created record for ${newRecord.userName} (${newRecord.id})`,
-    });
+    notify('success', 'Record Created', `Successfully created record for ${newRecord.userName} (${newRecord.id})`);
 
     return newRecord;
   }
@@ -126,11 +131,7 @@ export function useDataStore() {
       updatedAt: Date.now(),
     };
 
-    addToast({
-      type: 'success',
-      title: 'Record Updated',
-      message: `Updated details for ${records.value[idx].userName} (${id})`,
-    });
+    notify('success', 'Record Updated', `Updated details for ${records.value[idx].userName} (${id})`);
 
     return true;
   }
@@ -141,12 +142,7 @@ export function useDataStore() {
 
     const deletedUser = records.value[idx].userName;
     records.value.splice(idx, 1);
-
-    addToast({
-      type: 'warning',
-      title: 'Record Deleted',
-      message: `Removed ${deletedUser} (${id}) from database.`,
-    });
+    notify('warning', 'Record Deleted', `Removed ${deletedUser} (${id}) from database.`);
 
     return true;
   }
@@ -154,20 +150,12 @@ export function useDataStore() {
   function pinRecord(id: string, targetPosition: number) {
     records.value = resolvePinCollision(records.value, id, targetPosition);
     const target = records.value.find((r) => r.id === id);
-    addToast({
-      type: 'info',
-      title: 'Row Pinned',
-      message: `Pinned ${target?.userName || id} to slot #${targetPosition}. Any overlapping pins shifted down.`,
-    });
+    notify('info', 'Row Pinned', `Pinned ${target?.userName || id} to slot #${targetPosition}. Any overlapping pins shifted down.`);
   }
 
   function unpinRecord(id: string) {
     records.value = removePin(records.value, id);
-    addToast({
-      type: 'info',
-      title: 'Row Unpinned',
-      message: `Unpinned record #${id}. It now follows standard search/sort order.`,
-    });
+    notify('info', 'Row Unpinned', `Unpinned record #${id}. It now follows standard search/sort order.`);
   }
 
   function resetToDefaultSeed() {
@@ -181,29 +169,7 @@ export function useDataStore() {
     records.value = freshBatch;
     totalLoadedCount.value = freshBatch.length;
 
-    addToast({
-      type: 'info',
-      title: 'Database Reset',
-      message: `Reset database with ${INITIAL_SEED_COUNT} clean records.`,
-    });
-  }
-
-  function addToast(toast: Omit<NotificationToast, 'id' | 'timestamp'>) {
-    const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const newToast: NotificationToast = {
-      ...toast,
-      id,
-      timestamp: Date.now(),
-    };
-    toasts.value.push(newToast);
-
-    setTimeout(() => {
-      removeToast(id);
-    }, 4000);
-  }
-
-  function removeToast(id: string) {
-    toasts.value = toasts.value.filter((t) => t.id !== id);
+    notify('info', 'Database Reset', `Reset database with ${INITIAL_SEED_COUNT} clean records.`);
   }
 
   const pinnedRecordsCount = computed(() => {
@@ -215,7 +181,6 @@ export function useDataStore() {
     rememberMode,
     isBatchLoading,
     totalLoadedCount,
-    toasts,
     pinnedRecordsCount,
     loadNextBatch,
     addRecord,
@@ -224,7 +189,6 @@ export function useDataStore() {
     pinRecord,
     unpinRecord,
     resetToDefaultSeed,
-    addToast,
-    removeToast,
+    notify,
   };
 }
