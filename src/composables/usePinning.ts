@@ -34,15 +34,12 @@ export function computeDisplayList(
   searchQuery: string,
   sortCriteria: SortCriteria[]
 ): DataRecord[] {
-  const pinnedItems = allRecords
-    .filter((r) => r.pinnedPosition !== null)
-    .sort((a, b) => (a.pinnedPosition ?? 0) - (b.pinnedPosition ?? 0));
-
-  let unpinnedItems = allRecords.filter((r) => r.pinnedPosition === null);
-
   const trimmedQuery = searchQuery.trim().toLowerCase();
+
+  // 1. Filter ALL records (both pinned & unpinned) by search query
+  let filtered = allRecords;
   if (trimmedQuery) {
-    unpinnedItems = unpinnedItems.filter((r) => {
+    filtered = allRecords.filter((r) => {
       return (
         r.userName.toLowerCase().includes(trimmedQuery) ||
         r.position.toLowerCase().includes(trimmedQuery) ||
@@ -54,8 +51,16 @@ export function computeDisplayList(
     });
   }
 
+  // 2. Separate matching records into pinned vs unpinned
+  const matchingPinned = filtered
+    .filter((r) => r.pinnedPosition !== null)
+    .sort((a, b) => (a.pinnedPosition ?? 0) - (b.pinnedPosition ?? 0));
+
+  let matchingUnpinned = filtered.filter((r) => r.pinnedPosition === null);
+
+  // 3. Apply composite multi-column sorting to matching unpinned records
   if (sortCriteria.length > 0) {
-    unpinnedItems.sort((a, b) => {
+    matchingUnpinned.sort((a, b) => {
       for (const sort of sortCriteria) {
         const valA = a[sort.field];
         const valB = b[sort.field];
@@ -74,23 +79,24 @@ export function computeDisplayList(
     });
   }
 
+  // 4. Interleave matching pinned records into the list at their 1-based relative slot
   const result: DataRecord[] = [];
   let unpinnedIdx = 0;
   let currentSlot = 1;
 
   const pinnedMap = new Map<number, DataRecord>();
-  pinnedItems.forEach((item) => {
+  matchingPinned.forEach((item) => {
     pinnedMap.set(item.pinnedPosition!, item);
   });
 
-  const totalLength = pinnedItems.length + unpinnedItems.length;
+  const totalLength = matchingPinned.length + matchingUnpinned.length;
 
-  while (result.length < totalLength && (unpinnedIdx < unpinnedItems.length || pinnedMap.size > 0)) {
+  while (result.length < totalLength && (unpinnedIdx < matchingUnpinned.length || pinnedMap.size > 0)) {
     if (pinnedMap.has(currentSlot)) {
       result.push(pinnedMap.get(currentSlot)!);
       pinnedMap.delete(currentSlot);
-    } else if (unpinnedIdx < unpinnedItems.length) {
-      result.push(unpinnedItems[unpinnedIdx++]);
+    } else if (unpinnedIdx < matchingUnpinned.length) {
+      result.push(matchingUnpinned[unpinnedIdx++]);
     } else {
       const remainingPinned = Array.from(pinnedMap.values());
       result.push(...remainingPinned);

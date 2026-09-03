@@ -6,8 +6,9 @@ import { resolvePinCollision, removePin } from './usePinning';
 
 const STORAGE_KEY_RECORDS = 'uwow_data_records_v1';
 const STORAGE_KEY_REMEMBER = 'uwow_remember_mode_v1';
-const INITIAL_SEED_COUNT = 2500;
+const INITIAL_SEED_COUNT = 500;
 const BATCH_SIZE = 500;
+const TOTAL_DATASET_TARGET = 10_000_000;
 
 export function useDataStore() {
   const toast = useToast();
@@ -19,6 +20,7 @@ export function useDataStore() {
   const records = ref<DataRecord[]>([]);
   const isBatchLoading = ref<boolean>(false);
   const totalLoadedCount = ref<number>(0);
+  const totalDatasetCount = ref<number>(TOTAL_DATASET_TARGET);
 
   function notify(type: 'success' | 'warning' | 'error' | 'info', title: string, description: string) {
     const iconMap = {
@@ -56,7 +58,7 @@ export function useDataStore() {
     const initialBatch = generateRecordsBatch(INITIAL_SEED_COUNT, 1);
     if (initialBatch.length > 5) {
       initialBatch[0].pinnedPosition = 1;
-      initialBatch[4].pinnedPosition = 3;
+      initialBatch[2].pinnedPosition = 3;
     }
     records.value = initialBatch;
     totalLoadedCount.value = initialBatch.length;
@@ -164,7 +166,7 @@ export function useDataStore() {
     const freshBatch = generateRecordsBatch(INITIAL_SEED_COUNT, 1);
     if (freshBatch.length > 5) {
       freshBatch[0].pinnedPosition = 1;
-      freshBatch[4].pinnedPosition = 3;
+      freshBatch[2].pinnedPosition = 3;
     }
     records.value = freshBatch;
     totalLoadedCount.value = freshBatch.length;
@@ -181,6 +183,7 @@ export function useDataStore() {
     rememberMode,
     isBatchLoading,
     totalLoadedCount,
+    totalDatasetCount,
     pinnedRecordsCount,
     loadNextBatch,
     addRecord,

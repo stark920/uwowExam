@@ -10,15 +10,15 @@
           <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
             UWow Data Engine
           </h1>
-          <p class="text-xs text-slate-400">Vue 3 &bull; Nuxt UI &bull; Virtual Scroll &bull; Sticky Pinned Rows</p>
+          <p class="text-xs text-slate-400">Vue 3 &bull; Nuxt UI &bull; Virtual Scroll &bull; Real Relative Slot Pins</p>
         </div>
       </div>
 
-      <!-- Stats badges with Nuxt UI UBadge -->
+      <!-- Stats badges with Nuxt UI UBadge: loaded vs total (e.g. 500 / 10,000,000) -->
       <div class="flex items-center gap-2 flex-wrap">
         <UBadge color="primary" variant="subtle" size="md">
           <Database :size="12" class="mr-1" />
-          {{ totalRecords.toLocaleString() }} Loaded
+          {{ totalRecords.toLocaleString() }} / {{ (totalDatasetCount || 10000000).toLocaleString() }} Loaded
         </UBadge>
         <UBadge v-if="pinnedCount > 0" color="warning" variant="subtle" size="md">
           <Pin :size="12" class="mr-1" />
@@ -83,6 +83,7 @@ import { Layers, Database, Pin, RefreshCw } from 'lucide-vue-next';
 
 defineProps<{
   totalRecords: number;
+  totalDatasetCount?: number;
   pinnedCount: number;
   isBatchLoading: boolean;
   rememberMode: boolean;

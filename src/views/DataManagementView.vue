@@ -3,6 +3,7 @@
     <!-- Top Header -->
     <AppHeader
       :total-records="totalLoadedCount"
+      :total-dataset-count="totalDatasetCount"
       :pinned-count="pinnedRecordsCount"
       :is-batch-loading="isBatchLoading"
       v-model:remember-mode="rememberMode"
@@ -137,6 +138,7 @@ const {
   rememberMode,
   isBatchLoading,
   totalLoadedCount,
+  totalDatasetCount,
   pinnedRecordsCount,
   loadNextBatch,
   addRecord,

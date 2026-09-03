@@ -47,12 +47,21 @@ describe('2. Relative Pinning & Collision Resolution (Option A Shift/Bump)', () 
     expect(bob?.pinnedPosition).toBeNull();
   });
 
-  it('computes display list locking pinned items to target slots regardless of search filter (Behavior B)', () => {
+  it('filters all columns and excludes non-matching pinned rows from search results', () => {
+    // Charlie matches 'PM', but Alice (pinned 1) and Bob (pinned 2) do not match 'PM'
     const display = computeDisplayList(records, 'PM', []);
-    expect(display.length).toBe(3);
-    expect(display[0].id).toBe('1');
-    expect(display[1].id).toBe('2');
-    expect(display[2].id).toBe('3');
+    expect(display.length).toBe(1);
+    expect(display[0].id).toBe('3');
+  });
+
+  it('interleaves matching pinned items at their exact 1-based relative slot index', () => {
+    // When no search query, slot 1 has Alice, slot 2 has Bob, slot 3 has Charlie, slot 4 has David
+    const display = computeDisplayList(records, '', []);
+    expect(display.length).toBe(4);
+    expect(display[0].id).toBe('1'); // Slot 1
+    expect(display[1].id).toBe('2'); // Slot 2
+    expect(display[2].id).toBe('3'); // Slot 3
+    expect(display[3].id).toBe('4'); // Slot 4
   });
 });
 
